@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<xml>
+
+  <!-- ****************************************************************** -->
+
+  <dep name="libc" lang="c">
+    <desc targets="tux, osx, ios">
+      <lib value="-lpthread -ldl -lm" />
+      <![CDATA[
+	#include <pthread.h>
+
+	int main(void)
+	{
+		return 0;
+	}
+      ]]>
+    </desc>
+
+    <desc targets="win">
+      <lib value="-lpsapi -lwsock32" />
+      <![CDATA[
+	#include <windows.h>
+
+	int main(void)
+	{
+		return 0;
+	}
+      ]]>
+    </desc>
+
+    <desc targets="android">
+      <lib value="-ldl -lm" />
+      <![CDATA[
+	#include <pthread.h>
+
+	int main(void)
+	{
+		return 0;
+	}
+      ]]>
+    </desc>
+  </dep>
+
+  <!-- ****************************************************************** -->
+
+  <dep name="libobjc" lang="objective-c">
+    <desc targets="tux, osx, ios, android, win">
+      <lib value="-lobjc" />
+    </desc>
+  </dep>
+
+  <!-- ****************************************************************** -->
+
+  <project name="libctnr" type="lib" link="shared">
+    <src path="src/BSD.c" />
+    <src path="src/buffer.c" />
+    <src path="src/ctnr.c" />
+    <src path="src/data.c" />
+    <src path="src/deflate.c" />
+    <src path="src/hash.c" />
+    <src path="src/hash_crc32.c" />
+    <src path="src/hash_murmur32.c" />
+    <src path="src/inflate.c" />
+    <src path="src/library.c" />
+    <src path="src/memory.c" />
+    <src path="src/panic.c" />
+    <src path="src/pool.c" />
+<!--<src path="src/pool_data.c" />
+--> <src path="src/pool_vector.c" />
+    <src path="src/vector.c" />
+
+    <src path="src/thread-posix.c" targets="tux, osx, ios, android" />
+    <src path="src/thread-win.c"   targets="win"                    />
+
+    <src path="src/*.m" opt="-Dinline=__inline__ -fobjc-exceptions" />
+
+    <use name="libc" optional="no" />
+    <use name="libobjc" optional="no" />
+
+    <opt value="-O3 -std=c89" />
+
+<![CDATA[
+	install -d $(PWD_INC)/core
+	install $(SRC_INC)/ctnr.h $(PWD_INC)/core/ctnr.h
+	install $(SRC_INC)/ctnr_list.h $(PWD_INC)/core/ctnr_list.h
+
+	$(GCC) -r -nostdlib -o $(PWD_LIB)/$(PROJECT_PREFIX)libctnr-static$(PROJECT_SUFFIX)$(LIB_STATIC_SUFFIX) $(OBJS_LIBCTNR)
+]]>
+
+<![CDATA[
+	install -d $(DST_INC)/core
+	install $(SRC_INC)/ctnr.h $(DST_INC)/core/ctnr.h
+	install $(SRC_INC)/ctnr_list.h $(DST_INC)/core/ctnr_list.h
+
+	install $(PWD_LIB)/$(PROJECT_PREFIX)libctnr-static$(PROJECT_SUFFIX)$(LIB_STATIC_SUFFIX) $(DST_LIB)
+]]>
+
+  </project>
+
+<!-- ******************************************************************** -->
+
+</xml>
+

@@ -1,0 +1,552 @@
+/* Author  : Jerome ODIER
+ * Email   : jerome.odier@cern.ch
+ *
+ * Version : 1.0 (2007-2012)
+ *
+ *
+ * This file is part of LIBCTNR.
+ *
+ *  Foobar is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published
+ *  by the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Foobar is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*-------------------------------------------------------------------------*/
+
+#include <string.h>
+
+#include "../include/ctnr.h"
+
+/*-------------------------------------------------------------------------*/
+
+typedef struct inflate_tree_s
+{
+	uint32_t table[16];
+	uint32_t trans[288];
+
+} inflate_tree_t;
+
+/*-------------------------------------------------------------------------*/
+
+typedef struct inflate_data_s
+{
+	uint8_t *dst_buff;
+	size_t dst_size;
+
+	uint8_t *src_buff;
+	size_t src_size;
+
+	uint32_t tag;
+	uint32_t cnt;
+
+	inflate_tree_t ltree;
+	inflate_tree_t dtree;
+
+} inflate_data_t;
+
+/*-------------------------------------------------------------------------*/
+
+static const inflate_tree_t ltree = {
+	.table = {
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x018,
+		0x098, 0x070, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+	},
+	.trans = {
+		0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107,
+		0x108, 0x109, 0x10A, 0x10B, 0x10C, 0x10D, 0x10E, 0x10F,
+		0x110, 0x111, 0x112, 0x113, 0x114, 0x115, 0x116, 0x117,
+		0x000, 0x001, 0x002, 0x003, 0x004, 0x005, 0x006, 0x007,
+		0x008, 0x009, 0x00A, 0x00B, 0x00C, 0x00D, 0x00E, 0x00F,
+		0x010, 0x011, 0x012, 0x013, 0x014, 0x015, 0x016, 0x017,
+		0x018, 0x019, 0x01A, 0x01B, 0x01C, 0x01D, 0x01E, 0x01F,
+		0x020, 0x021, 0x022, 0x023, 0x024, 0x025, 0x026, 0x027,
+		0x028, 0x029, 0x02A, 0x02B, 0x02C, 0x02D, 0x02E, 0x02F,
+		0x030, 0x031, 0x032, 0x033, 0x034, 0x035, 0x036, 0x037,
+		0x038, 0x039, 0x03A, 0x03B, 0x03C, 0x03D, 0x03E, 0x03F,
+		0x040, 0x041, 0x042, 0x043, 0x044, 0x045, 0x046, 0x047,
+		0x048, 0x049, 0x04A, 0x04B, 0x04C, 0x04D, 0x04E, 0x04F,
+		0x050, 0x051, 0x052, 0x053, 0x054, 0x055, 0x056, 0x057,
+		0x058, 0x059, 0x05A, 0x05B, 0x05C, 0x05D, 0x05E, 0x05F,
+		0x060, 0x061, 0x062, 0x063, 0x064, 0x065, 0x066, 0x067,
+		0x068, 0x069, 0x06A, 0x06B, 0x06C, 0x06D, 0x06E, 0x06F,
+		0x070, 0x071, 0x072, 0x073, 0x074, 0x075, 0x076, 0x077,
+		0x078, 0x079, 0x07A, 0x07B, 0x07C, 0x07D, 0x07E, 0x07F,
+		0x080, 0x081, 0x082, 0x083, 0x084, 0x085, 0x086, 0x087,
+		0x088, 0x089, 0x08A, 0x08B, 0x08C, 0x08D, 0x08E, 0x08F,
+		0x118, 0x119, 0x11A, 0x11B, 0x11C, 0x11D, 0x11E, 0x11F,
+		0x090, 0x091, 0x092, 0x093, 0x094, 0x095, 0x096, 0x097,
+		0x098, 0x099, 0x09A, 0x09B, 0x09C, 0x09D, 0x09E, 0x09F,
+		0x0A0, 0x0A1, 0x0A2, 0x0A3, 0x0A4, 0x0A5, 0x0A6, 0x0A7,
+		0x0A8, 0x0A9, 0x0AA, 0x0AB, 0x0AC, 0x0AD, 0x0AE, 0x0AF,
+		0x0B0, 0x0B1, 0x0B2, 0x0B3, 0x0B4, 0x0B5, 0x0B6, 0x0B7,
+		0x0B8, 0x0B9, 0x0BA, 0x0BB, 0x0BC, 0x0BD, 0x0BE, 0x0BF,
+		0x0C0, 0x0C1, 0x0C2, 0x0C3, 0x0C4, 0x0C5, 0x0C6, 0x0C7,
+		0x0C8, 0x0C9, 0x0CA, 0x0CB, 0x0CC, 0x0CD, 0x0CE, 0x0CF,
+		0x0D0, 0x0D1, 0x0D2, 0x0D3, 0x0D4, 0x0D5, 0x0D6, 0x0D7,
+		0x0D8, 0x0D9, 0x0DA, 0x0DB, 0x0DC, 0x0DD, 0x0DE, 0x0DF,
+		0x0E0, 0x0E1, 0x0E2, 0x0E3, 0x0E4, 0x0E5, 0x0E6, 0x0E7,
+		0x0E8, 0x0E9, 0x0EA, 0x0EB, 0x0EC, 0x0ED, 0x0EE, 0x0EF,
+		0x0F0, 0x0F1, 0x0F2, 0x0F3, 0x0F4, 0x0F5, 0x0F6, 0x0F7,
+		0x0F8, 0x0F9, 0x0FA, 0x0FB, 0x0FC, 0x0FD, 0x0FE, 0x0FF,
+	},
+};
+
+static const inflate_tree_t dtree = {
+	.table = {
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x020, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+	},
+	.trans = {
+		0x000, 0x001, 0x002, 0x003, 0x004, 0x005, 0x006, 0x007,
+		0x008, 0x009, 0x00A, 0x00B, 0x00C, 0x00D, 0x00E, 0x00F,
+		0x010, 0x011, 0x012, 0x013, 0x014, 0x015, 0x016, 0x017,
+		0x018, 0x019, 0x01A, 0x01B, 0x01C, 0x01D, 0x01E, 0x01F,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+		0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000,
+	},
+};
+
+/*-------------------------------------------------------------------------*/
+
+static const uint32_t lbits[30] = {
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+	0x0000, 0x0000, 0x0001, 0x0001, 0x0001, 0x0001,
+	0x0002, 0x0002, 0x0002, 0x0002, 0x0003, 0x0003,
+	0x0003, 0x0003, 0x0004, 0x0004, 0x0004, 0x0004,
+	0x0005, 0x0005, 0x0005, 0x0005, 0x0000, 0x0006,
+};
+
+static const uint32_t lbase[30] = {
+	0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008,
+	0x0009, 0x000A, 0x000B, 0x000D, 0x000F, 0x0011,
+	0x0013, 0x0017, 0x001B, 0x001F, 0x0023, 0x002B,
+	0x0033, 0x003B, 0x0043, 0x0053, 0x0063, 0x0073,
+	0x0083, 0x00A3, 0x00C3, 0x00E3, 0x0102, 0x0143,
+};
+
+static const uint32_t dbits[30] = {
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0001,
+	0x0002, 0x0002, 0x0003, 0x0003, 0x0004, 0x0004,
+	0x0005, 0x0005, 0x0006, 0x0006, 0x0007, 0x0007,
+	0x0008, 0x0008, 0x0009, 0x0009, 0x000A, 0x000A,
+	0x000B, 0x000B, 0x000C, 0x000C, 0x000D, 0x000D,
+};
+
+static const uint32_t dbase[30] = {
+	0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0007,
+	0x0009, 0x000D, 0x0011, 0x0019, 0x0021, 0x0031,
+	0x0041, 0x0061, 0x0081, 0x00C1, 0x0101, 0x0181,
+	0x0201, 0x0301, 0x0401, 0x0601, 0x0801, 0x0C01,
+	0x1001, 0x1801, 0x2001, 0x3001, 0x4001, 0x6001,
+};
+
+/*-------------------------------------------------------------------------*/
+/* BITS									   */
+/*-------------------------------------------------------------------------*/
+
+static uint32_t inflate_get_bit(inflate_data_t *data)
+{
+	if(data->cnt == 0)
+	{
+		data->tag = *data->src_buff++;
+		data->cnt = 0x000000000000008;
+	}
+
+	uint32_t result = data->tag & 0x01;
+
+	data->tag >>= 1;
+	data->cnt  -= 1;
+
+	return result;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static uint32_t inflate_get_bits(inflate_data_t *data, uint32_t base, int nbr)
+{
+	uint32_t result = base;
+
+	if(nbr != 0)
+	{
+		uint32_t mask = 1U << 0x0;
+		uint32_t limit = 1U << nbr;
+
+		for(; mask < limit; mask <<= 1)
+		{
+			if(inflate_get_bit(data) != 0)
+			{
+				result += mask;
+			}
+		}
+	}
+
+	return result;
+}
+
+/*-------------------------------------------------------------------------*/
+/* SYMBOLS								   */
+/*-------------------------------------------------------------------------*/
+
+static int32_t inflate_decode_symbol(inflate_data_t *data, const inflate_tree_t *tree)
+{
+	int sum = 0;
+	int cur = 0;
+
+	const uint32_t *table = tree->table;
+
+	do {
+		cur = 2 * cur + inflate_get_bit(data);
+
+		/**/
+
+		table++;
+
+		sum += table[0];
+		cur -= table[0];
+
+	} while(cur >= 0);
+
+	return tree->trans[sum + cur];
+}
+
+/*-------------------------------------------------------------------------*/
+/* TREES								   */
+/*-------------------------------------------------------------------------*/
+
+static void inflate_build_tree(inflate_tree_t *tree, const uint32_t *lengths, uint32_t nbr)
+{
+	int i;
+	int j;
+
+	uint32_t offsets[16];
+
+	/*-----------------------------------------------------------------*/
+
+	memset(tree->table, 0x00, sizeof(tree->table));
+
+	/*-----------------------------------------------------------------*/
+
+	for(i = 0; i < nbr; i++)
+	{
+		tree->table[lengths[i]]++;
+	}
+
+	tree->table[0] = 0;
+
+	/*-----------------------------------------------------------------*/
+
+	j = 0;
+
+	for(i = 0; i < 16; i++)
+	{
+		offsets[i] = j; j += tree->table[i];
+	}
+
+	/*-----------------------------------------------------------------*/
+
+	for(i = 0; i < nbr; i++)
+	{
+		if(lengths[i] != 0)
+		{
+			tree->trans[offsets[lengths[i]]++] = i;
+		}
+	}
+
+	/*-----------------------------------------------------------------*/
+}
+
+/*-------------------------------------------------------------------------*/
+
+static void inflate_decode_trees(inflate_data_t *data, inflate_tree_t *ltree, inflate_tree_t *dtree)
+{
+	int i;
+	int j;
+
+	inflate_tree_t tree;
+
+	uint32_t lengths[288 + 32], *lptr = lengths, prev;
+
+	/*-----------------------------------------------------------------*/
+
+	int h1 = inflate_get_bits(data, 257, 5);
+	int h2 = inflate_get_bits(data,  1 , 5);
+	int h3 = inflate_get_bits(data,  4 , 4);
+
+	/*-----------------------------------------------------------------*/
+
+	memset(lengths, 0x00, sizeof(lengths));
+
+	/*-----------------------------------------------------------------*/
+
+	for(i = 0; i < h3; i++)
+	{
+		static const uint32_t order[19] = {
+			16, 17, 18,  0,
+			 8,  7,  9,  6,
+			10,  5, 11,  4,
+			12,  3, 13,  2,
+			14,  1, 15,
+		};
+
+		lengths[order[i]] = inflate_get_bits(data, 0, 3);
+	}
+
+	/*-----------------------------------------------------------------*/
+
+	inflate_build_tree(&tree, lengths, 19);
+
+	/*-----------------------------------------------------------------*/
+
+	for(i = 0; i < h1 + h2;)
+	{
+		int symb = inflate_decode_symbol(data, &tree);
+
+		switch(symb)
+		{
+			case 16:
+				prev = (lptr - 1)[0];
+
+				for(j = inflate_get_bits(data, 0x03, 2); j > 0; j--)
+				{
+					i++;
+					(lptr++)[0] = prev;
+				}
+				break;
+
+			case 17:
+				for(j = inflate_get_bits(data, 0x03, 3); j > 0; j--)
+				{
+					i++;
+					(lptr++)[0] = 0x00;
+				}
+				break;
+
+			case 18:
+				for(j = inflate_get_bits(data, 0x0B, 7); j > 0; j--)
+				{
+					i++;
+					(lptr++)[0] = 0x00;
+				}
+				break;
+
+			default:
+				i++;
+				(lptr++)[0] = symb;
+				break;
+		}
+	}
+
+	/*-----------------------------------------------------------------*/
+
+	inflate_build_tree(ltree, lengths +  0, h1);
+	inflate_build_tree(dtree, lengths + h1, h2);
+
+	/*-----------------------------------------------------------------*/
+}
+
+/*-------------------------------------------------------------------------*/
+/* INFLATE								   */
+/*-------------------------------------------------------------------------*/
+
+static bool inflate_inflate(inflate_data_t *data, const inflate_tree_t *ltree, const inflate_tree_t *dtree)
+{
+	int size;
+	int dist;
+	int offs;
+
+	uint32_t symb;
+
+	uint8_t *data__dst_buff = data->dst_buff;
+
+	for(;;)
+	{
+		/*---------------------------------------------------------*/
+
+		symb = inflate_decode_symbol(data, ltree);
+
+		/*---------------------------------------------------------*/
+
+		if(symb == 256)
+		{
+			data->dst_size += ctnr_cast(size_t,
+				ctnr_cast(uintptr_t, data->dst_buff)
+				-
+				ctnr_cast(uintptr_t, data__dst_buff)
+			);
+
+			return true;
+		}
+
+		/*---------------------------------------------------------*/
+
+		if(symb >= 256)
+		{
+			symb -= 257;
+
+			/**/
+
+			size = inflate_get_bits(data, lbase[symb], lbits[symb]);
+			dist = inflate_decode_symbol(data, dtree);
+			offs = inflate_get_bits(data, dbase[dist], dbits[dist]);
+
+			/**/
+
+			data->dst_buff = ctnr_cast(uint8_t *, memcpy(
+				data->dst_buff - 0x00
+				,
+				data->dst_buff - offs
+				,
+				size
+			)) + size;
+		}
+		else
+		{
+			*data->dst_buff++ = symb;
+		}
+
+		/*---------------------------------------------------------*/
+	}
+}
+
+/*-------------------------------------------------------------------------*/
+/* INFLATE0								   */
+/*-------------------------------------------------------------------------*/
+
+static bool inflate_inflate0(inflate_data_t *data)
+{
+	/*-----------------------------------------------------------------*/
+
+	uint32_t len1;
+	uint32_t len2;
+
+	len1 = data->src_buff[1];
+	len1 = 256 * len1 + data->src_buff[0];
+
+	len2 = data->src_buff[3];
+	len2 = 256 * len2 + data->src_buff[2];
+
+	if(len1 != (~len2 & 0xFFFF))
+	{
+		return false;
+	}
+
+	data->src_buff += 4;
+
+	/*-----------------------------------------------------------------*/
+
+	data->cnt = 0;
+
+	data->dst_size += len1;
+
+	memcpy(data->dst_buff, data->src_buff, len1);
+
+	/*-----------------------------------------------------------------*/
+
+	return true;
+}
+
+/*-------------------------------------------------------------------------*/
+/* INFLATE								   */
+/*-------------------------------------------------------------------------*/
+
+bool ctnr_inflate(buff_t dst_buff, size_t *dst_size, BUFF_t src_buff, size_t src_size)
+{
+	inflate_data_t data = {
+		.dst_buff = ctnr_cast(uint8_t *, dst_buff),
+		.dst_size = 0x000000,
+
+		.src_buff = ctnr_cast(uint8_t *, src_buff),
+		.src_size = src_size,
+	};
+
+	bool is_ok;
+	bool is_ko;
+
+	for(;;)
+	{
+		is_ko = inflate_get_bit(&data);
+
+		switch(inflate_get_bits(&data, 0, 2))
+		{
+			case 0:
+				is_ok = inflate_inflate0(&data);
+				break;
+
+			case 1:
+			/*	inflate_decode_trees(qdata, &ltree, &dtree);
+			 */
+				is_ok = inflate_inflate(&data, &ltree, &dtree);
+				break;
+
+			case 2:
+				inflate_decode_trees(&data, &data.ltree, &data.dtree);
+
+				is_ok = inflate_inflate(&data, &data.ltree, &data.dtree);
+				break;
+
+			default:
+				is_ok = false;
+				break;
+		}
+
+		if(is_ok == false)
+		{
+			if(dst_size != NULL) {
+				*dst_size = 0x00000000000;
+			}
+
+			return false;
+		}
+
+		if(is_ko != false)
+		{
+			if(dst_size != NULL) {
+				*dst_size = data.dst_size;
+			}
+
+			return true;
+		}
+	}
+}
+
+/*-------------------------------------------------------------------------*/
+
