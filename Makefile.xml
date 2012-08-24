@@ -56,7 +56,6 @@
     <src path="src/BSD.c" />
     <src path="src/buffer.c" />
     <src path="src/ctnr.c" />
-    <src path="src/data.c" />
     <src path="src/deflate.c" />
     <src path="src/hash.c" />
     <src path="src/hash_crc32.c" />
@@ -64,11 +63,12 @@
     <src path="src/inflate.c" />
     <src path="src/library.c" />
     <src path="src/memory.c" />
+    <src path="src/memory_data.c" />
+    <src path="src/memory_vector.c" />
     <src path="src/panic.c" />
     <src path="src/pool.c" />
     <src path="src/pool_data.c" />
     <src path="src/pool_vector.c" />
-    <src path="src/vector.c" />
 
     <src path="src/thread-posix.c" targets="tux, osx, ios, android" />
     <src path="src/thread-win.c"   targets="win"                    />

@@ -45,7 +45,7 @@ typedef struct ctnr_data_item_s
 
 /*-------------------------------------------------------------------------*/
 
-bool ctnr_data_push(struct ctnr_data_s *data, BUFF_t buff, size_t size, enum_t type)
+bool ctnr_data_push(ctnr_data_t *data, BUFF_t buff, size_t size, enum_t type)
 {
 	ctnr_data_item_t *item = ctnr_cast(ctnr_data_item_t *, ctnr_memory_malloc(sizeof(ctnr_data_item_t) + size));
 

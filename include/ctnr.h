@@ -365,19 +365,31 @@ DLL_PUBLIC void ctnr_mcond_broadcast(struct ctnr_mcond_s *);
 #define ctnr_data_init(data) \
 		(data)[0] = ((struct ctnr_data_s) {0, NULL})
 
+#define ctnr_pool_data_init(pool, data) \
+		(data)[0] = ((struct ctnr_data_s) {0, NULL})
+
 /*-------------------------------------------------------------------------*/
 
 DLL_PUBLIC bool ctnr_data_push(struct ctnr_data_s *, BUFF_t, size_t, enum_t);
+DLL_PUBLIC bool ctnr_pool_data_push(struct ctnr_pool_s *, struct ctnr_data_s *, BUFF_t, size_t, enum_t);
 
 DLL_PUBLIC bool ctnr_data_pop_head(struct ctnr_data_s *, buff_t, size_t *, enum_t *);
+DLL_PUBLIC bool ctnr_pool_data_pop_head(struct ctnr_pool_s *, struct ctnr_data_s *, buff_t, size_t *, enum_t *);
+
 DLL_PUBLIC bool ctnr_data_pop_tail(struct ctnr_data_s *, buff_t, size_t *, enum_t *);
+DLL_PUBLIC bool ctnr_pool_data_pop_tail(struct ctnr_pool_s *, struct ctnr_data_s *, buff_t, size_t *, enum_t *);
 
 DLL_PUBLIC bool ctnr_data_get_head(struct ctnr_data_s *, buff_t, size_t *, enum_t *);
+DLL_PUBLIC bool ctnr_pool_data_get_head(struct ctnr_pool_s *, struct ctnr_data_s *, buff_t, size_t *, enum_t *);
+
 DLL_PUBLIC bool ctnr_data_get_tail(struct ctnr_data_s *, buff_t, size_t *, enum_t *);
+DLL_PUBLIC bool ctnr_pool_data_get_tail(struct ctnr_pool_s *, struct ctnr_data_s *, buff_t, size_t *, enum_t *);
 
 DLL_PUBLIC void ctnr_data_append(struct ctnr_data_s *, struct ctnr_data_s *);
+DLL_PUBLIC void ctnr_pool_data_append(struct ctnr_pool_s *, struct ctnr_data_s *, struct ctnr_data_s *);
 
 DLL_PUBLIC size_t ctnr_data_clear(struct ctnr_data_s *);
+DLL_PUBLIC size_t ctnr_pool_data_clear(struct ctnr_pool_s *, struct ctnr_data_s *);
 
 /*-------------------------------------------------------------------------*/
 /* VECTOR								   */
@@ -386,7 +398,13 @@ DLL_PUBLIC size_t ctnr_data_clear(struct ctnr_data_s *);
 #define ctnr_vect_init(vect, type) \
 		(vect)[0] = ((struct ctnr_vect_s) {NULL, 0x00, sizeof(type), /**/64/**/})
 
+#define ctnr_pool_vect_init(pool, vect, type) \
+		(vect)[0] = ((struct ctnr_vect_s) {NULL, 0x00, sizeof(type), /**/64/**/})
+
 #define ctnr_vect_init_with_cache_size(vect, type, cache_size) \
+		(vect)[0] = ((struct ctnr_vect_s) {NULL, 0x00, sizeof(type), cache_size})
+
+#define ctnr_pool_vect_init_with_cache_size(pool, vect, type, cache_size) \
 		(vect)[0] = ((struct ctnr_vect_s) {NULL, 0x00, sizeof(type), cache_size})
 
 /*-------------------------------------------------------------------------*/
