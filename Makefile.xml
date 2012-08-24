@@ -66,8 +66,8 @@
     <src path="src/memory.c" />
     <src path="src/panic.c" />
     <src path="src/pool.c" />
-<!--<src path="src/pool_data.c" />
---> <src path="src/pool_vector.c" />
+    <src path="src/pool_data.c" />
+    <src path="src/pool_vector.c" />
     <src path="src/vector.c" />
 
     <src path="src/thread-posix.c" targets="tux, osx, ios, android" />

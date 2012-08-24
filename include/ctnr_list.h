@@ -1,5 +1,5 @@
-/* Author  : Jerome ODIER, Christophe SMEKENS
- * Email   : jerome.odier@cern.ch, smekens@hypnos3d.com
+/* Author  : Jerome ODIER
+ * Email   : jerome.odier@cern.ch
  *
  * Version : 1.0 (2007-2012)
  *
@@ -60,22 +60,22 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define __list_insert_atleft_named(atleft_item, item, prev, next)		\
+#define __list_insert_atleft_named(existing_item, item, prev, next)		\
 {										\
-	(atleft_item)->prev->next = (item);					\
-	(item)->prev = (atleft_item)->prev;					\
-	(atleft_item)->prev = (item);						\
-	(item)->next = (atleft_item);						\
+	(existing_item)->prev->next = (item);					\
+	(item)->prev = (existing_item)->prev;					\
+	(existing_item)->prev = (item);						\
+	(item)->next = (existing_item);						\
 }
 
 /*-------------------------------------------------------------------------*/
 
-#define __list_insert_atright_named(atright_item, item, prev, next)		\
+#define __list_insert_atright_named(existing_item, item, prev, next)		\
 {										\
-	(atright_item)->next->prev = (item);					\
-	(item)->next = (atright_item)->next;					\
-	(atright_item)->next = (item);						\
-	(item)->prev = (atright_item);						\
+	(existing_item)->next->prev = (item);					\
+	(item)->next = (existing_item)->next;					\
+	(existing_item)->next = (item);						\
+	(item)->prev = (existing_item);						\
 }
 
 /*-------------------------------------------------------------------------*/
@@ -112,13 +112,13 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define ctnr_list_insert_atleft_named(list, atleft_item, item, prev, next)	\
+#define ctnr_list_insert_atleft_named(list, existing_item, item, prev, next)	\
 {										\
 	if((list) != NULL)							\
 	{									\
-		__list_insert_atleft_named(list, item, prev, next);		\
+		__list_insert_atleft_named(existing_item, item, prev, next);	\
 										\
-		if((list) == (atleft_item))					\
+		if((list) == (existing_item))					\
 		{								\
 			(list) = (item);					\
 		}								\
@@ -131,13 +131,13 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define ctnr_list_insert_atright_named(list, atright_item, item, prev, next)	\
+#define ctnr_list_insert_atright_named(list, existing_item, item, prev, next)	\
 {										\
 	if((list) != NULL)							\
 	{									\
-		__list_insert_atright_named(list, item, prev, next);		\
+		__list_insert_atright_named(existing_item, item, prev, next);	\
 										\
-/*		if((list) == (atright_item))					\
+/*		if((list) == (existing_item))					\
  *		{								\
  *			(list) = (list);					\
  *		}								\
@@ -274,11 +274,11 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define ctnr_list_insert_atleft(list, atleft_item, item) \
-		ctnr_list_insert_atleft_named(list, atleft_item, item, prev, next)
+#define ctnr_list_insert_atleft(list, existing_item, item) \
+		ctnr_list_insert_atleft_named(list, existing_item, item, prev, next)
 
-#define ctnr_list_insert_atright(list, atright_item, item) \
-		ctnr_list_insert_atright_named(list, atright_item, item, prev, next)
+#define ctnr_list_insert_atright(list, existing_item, item) \
+		ctnr_list_insert_atright_named(list, existing_item, item, prev, next)
 
 /*-------------------------------------------------------------------------*/
 

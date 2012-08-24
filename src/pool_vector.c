@@ -28,7 +28,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define GET_ITEM(pool, vect, index) ctnr_cast(buff_t, ctnr_cast(uintptr_t, (vect)->buff) + (index) * (vect)->data_size)
+#define GET_ITEM(vect, index) ctnr_cast(buff_t, ctnr_cast(uintptr_t, (vect)->buff) + (index) * (vect)->data_size)
 
 /*-------------------------------------------------------------------------*/
 
@@ -68,7 +68,7 @@ bool ctnr_pool_vect_push_back(ctnr_pool_t *pool, ctnr_vect_t *vect, BUFF_t buff)
 	/**/
 
 	INC(pool, vect);
-	memcpy(GET_ITEM(pool, vect, vect->size), buff, vect->data_size);
+	memcpy(GET_ITEM(vect, vect->size), buff, vect->data_size);
 	vect->size++;
 
 	return true;
@@ -88,7 +88,7 @@ bool ctnr_pool_vect_pop_back(ctnr_pool_t *pool, ctnr_vect_t *vect, buff_t buff)
 	/**/
 
 	vect->size--;
-	memcpy(buff, GET_ITEM(pool, vect, vect->size), vect->data_size);
+	memcpy(buff, GET_ITEM(vect, vect->size), vect->data_size);
 	DEC(pool, vect);
 
 	return true;
@@ -106,7 +106,7 @@ void ctnr_pool_vect_del(ctnr_pool_t *pool, ctnr_vect_t *vect, size_t index)
 	/**/
 
 	vect->size--;
-	memcpy(GET_ITEM(pool, vect, index + 0), GET_ITEM(pool, vect, index + 1), (vect->size - index) * vect->data_size);
+	memcpy(GET_ITEM(vect, index + 0), GET_ITEM(vect, index + 1), (vect->size - index) * vect->data_size);
 	DEC(pool, vect);
 }
 
@@ -121,7 +121,7 @@ buff_t __ctnr_pool_vect_at(ctnr_pool_t *pool, ctnr_vect_t *vect, size_t index)
 
 	/**/
 
-	return GET_ITEM(pool, vect, index);
+	return GET_ITEM(vect, index);
 }
 
 /*-------------------------------------------------------------------------*/
