@@ -82,21 +82,31 @@
 
     <post_build>
       <![CDATA[
-	install -d $(PWD_INC)/core
-	install $(SRC_INC)/ctnr.h $(PWD_INC)/core/ctnr.h
-	install $(SRC_INC)/ctnr_list.h $(PWD_INC)/core/ctnr_list.h
+	@if [ "$(SRC)" != "$(PWD)" ];		\
+	then					\
+		install -d $(PWD_INC);		\
+						\
+		cp $(SRC_INC)/*.h $(PWD_INC);	\
+						\
+		chmod 644 $(PWD_INC)/*.h;	\
+	fi
 
-	$(GCC) -r -nostdlib -o $(PWD_LIB)/$(PROJECT_PREFIX)libctnr-static$(PROJECT_SUFFIX)$(LIB_STATIC_SUFFIX) $(OBJS_LIBCTNR)
+	$(GCC) -r -nostdlib -o $(PWD_LIB)/$(PROJECT_PREFIX)$(PROJECT_name)-static$(PROJECT_SUFFIX)$(LIB_STATIC_SUFFIX) $(OBJS_LIBCTNR)
       ]]>
     </post_build>
 
     <post_install>
       <![CDATA[
-	install -d $(DST_INC)/core
-	install $(SRC_INC)/ctnr.h $(DST_INC)/core/ctnr.h
-	install $(SRC_INC)/ctnr_list.h $(DST_INC)/core/ctnr_list.h
-
-	install $(PWD_LIB)/$(PROJECT_PREFIX)libctnr-static$(PROJECT_SUFFIX)$(LIB_STATIC_SUFFIX) $(DST_LIB)
+	@if [ "$(PWD)" != "$(DST)" ];												\
+	then															\
+		install -d $(DST_INC);												\
+																\
+		cp $(PWD_INC)/*.h $(DST_INC);											\
+																\
+		chmod 644 $(DST_INC)/*.h;											\
+																\
+		install $(PWD_LIB)/$(PROJECT_PREFIX)$(PROJECT_name)-static$(PROJECT_SUFFIX)$(LIB_STATIC_SUFFIX) $(DST_LIB);	\
+	fi
       ]]>
     </post_install>
 
