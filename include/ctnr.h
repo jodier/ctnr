@@ -51,27 +51,51 @@
 
 /*-------------------------------------------------------------------------*/
 
-#undef DLL_PUBLIC
-#undef DLL_HIDDEN
-
-/*-------------------------------------------------------------------------*/
-
-#ifdef __IS_WIN
-  #define DLL_PUBLIC
-  #define DLL_HIDDEN
-#else
-  #define DLL_PUBLIC \
-		__attribute__ ((visibility("default")))
-  #define DLL_HIDDEN \
-		__attribute__ ((visibility("hidden")))
+#ifndef __OBJC__
+  #define static \
+		static
+  #define public
 #endif
 
 /*-------------------------------------------------------------------------*/
 
+#undef DLL_HIDDEN
+#undef DLL_PUBLIC
+
+#ifdef __IS_WIN
+  #define DLL_HIDDEN
+  #define DLL_PUBLIC
+#else
+  #define DLL_HIDDEN \
+		__attribute__ ((visibility("hidden")))
+  #define DLL_PUBLIC \
+		__attribute__ ((visibility("default")))
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#define __CTNR_INLINE \
+		static __inline__
+
+#define __CTNR_NORETURN \
+		__attribute__ ((noreturn))
+
+#define __CTNR_DEPRECATED \
+		__attribute__ ((deprecated))
+
 #define __CTNR_CTOR \
 		__attribute__ ((constructor))
+
 #define __CTNR_DTOR \
 		__attribute__ ((destructor))
+
+#define __CTNR_PRINTF(x, y) \
+		__attribute__ ((format(printf, x, y)))
+
+/*-------------------------------------------------------------------------*/
+
+#define __CTNR_PACKED \
+		__attribute__ ((packed))
 
 /*-------------------------------------------------------------------------*/
 
@@ -201,7 +225,7 @@ CTNR_BEGIN_EXTERN_C
 /*-------------------------------------------------------------------------*/
 
 DLL_PUBLIC void ctnr_panic(const char *fmt, ...)
-					__attribute__ ((format(printf, 1, 2), noreturn));
+					__CTNR_NORETURN __CTNR_PRINTF(1, 2);
 
 /*-------------------------------------------------------------------------*/
 /* MEMORY								   */
@@ -335,7 +359,7 @@ DLL_PUBLIC void *ctnr_thread_waitfor(ctnr_thread_t *);
 /**/
 
 DLL_PUBLIC void ctnr_thread_exit(void *)
-				__attribute__ ((noreturn));
+				__CTNR_NORETURN;
 
 /*-------------------------------------------------------------------------*/
 
