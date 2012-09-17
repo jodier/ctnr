@@ -60,7 +60,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define ctnr_list_is_chained_named(item, prev, next)				\
+#define ctnr_list_item_is_chained_named(item, prev, next)			\
 	((item)->prev != NULL && (item)->next != NULL)
 
 /*-------------------------------------------------------------------------*/
@@ -271,8 +271,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-#define ctnr_list_is_chained(item) \
-		ctnr_list_is_chained_named(item, prev, next)
+#define ctnr_list_item_is_chained(item) \
+		ctnr_list_item_is_chained_named(item, prev, next)
 
 /*-------------------------------------------------------------------------*/
 
