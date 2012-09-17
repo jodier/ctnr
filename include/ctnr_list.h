@@ -60,6 +60,11 @@
 
 /*-------------------------------------------------------------------------*/
 
+#define ctnr_list_is_chained_named(item, prev, next)				\
+	((item)->prev != NULL && (item)->next != NULL)
+
+/*-------------------------------------------------------------------------*/
+
 #define __list_insert_atleft_named(existing_item, item, prev, next)		\
 {										\
 	(existing_item)->prev->next = (item);					\
@@ -263,6 +268,11 @@
 
 #define ctnr_list_get_tail(list) \
 		ctnr_list_get_tail_named(list, prev, next)
+
+/*-------------------------------------------------------------------------*/
+
+#define ctnr_list_is_chained(item) \
+		ctnr_list_is_chained_named(item, prev, next)
 
 /*-------------------------------------------------------------------------*/
 
