@@ -234,14 +234,14 @@
 		int CTNR_SYMB(__tmp_nr);					\
 		__typeof__(iterator) CTNR_SYMB(__tmp_list);			\
 										\
-		for(CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list).dict[(CTNR_SYMB(__tmp_nr)) = 0]; (CTNR_SYMB(__tmp_nr)) <= CTNR_HASH_MAX - 1; CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list).dict[(CTNR_SYMB(__tmp_nr)) = (CTNR_SYMB(__tmp_nr)) + 1]) \
+		for(CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list)->dict[(CTNR_SYMB(__tmp_nr)) = 0]; (CTNR_SYMB(__tmp_nr)) <= CTNR_HASH_MAX - 1; CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list)->dict[(CTNR_SYMB(__tmp_nr)) = (CTNR_SYMB(__tmp_nr)) + 1]) \
 			ctnr_list_foreach_forward_named(CTNR_SYMB(__tmp_list), iterator, nr, prev, next)
 
 #define ctnr_hash_foreach_backward_named(list, iterator, nr, prev, next) \
 		int CTNR_SYMB(__tmp_nr);					\
 		__typeof__(iterator) CTNR_SYMB(__tmp_list);			\
 										\
-		for(CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list).dict[(CTNR_SYMB(__tmp_nr)) = CTNR_HASH_MAX - 1]; (CTNR_SYMB(__tmp_nr)) >= 0; CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list).dict[(CTNR_SYMB(__tmp_nr)) = (CTNR_SYMB(__tmp_nr)) - 1]) \
+		for(CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list)->dict[(CTNR_SYMB(__tmp_nr)) = CTNR_HASH_MAX - 1]; (CTNR_SYMB(__tmp_nr)) >= 0; CTNR_SYMB(__tmp_list) = (__typeof__(iterator)) (list)->dict[(CTNR_SYMB(__tmp_nr)) = (CTNR_SYMB(__tmp_nr)) - 1]) \
 			ctnr_list_foreach_backward_named(CTNR_SYMB(__tmp_list), iterator, nr, prev, next)
 
 /*-------------------------------------------------------------------------*/
